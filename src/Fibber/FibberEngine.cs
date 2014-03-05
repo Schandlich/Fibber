@@ -87,13 +87,13 @@ namespace Fibber
 
                             if (func != null)
                             {
-                                if (func.Value.GetType() == propertyType)
+                                if (func.Generator.GetType() == propertyType)
                                 {
-                                    property.SetValue(item, func.Method, null);
+                                    property.SetValue(item, func.Generator, null);
                                 }
                                 else
                                 {
-                                    var constructedMethod = func.Value.Method as MethodInfo;
+                                    var constructedMethod = func.Generator.Method as MethodInfo;
 
                                     if (constructedMethod != null)
                                     {

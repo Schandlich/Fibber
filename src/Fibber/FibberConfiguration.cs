@@ -82,39 +82,39 @@ namespace Fibber
         public void UseDefaults()
         {
             dynamic boolExpando = new ExpandoObject();
-            boolExpando.Value = new Func<bool>(() => Generators.Current.Bool());
+            boolExpando.Generator = new Func<bool>(() => Generators.Current.Bool());
             TypeGenerators.Add(typeof(bool), boolExpando);
 
             dynamic byteExpando = new ExpandoObject();
-            byteExpando.Value = new Func<byte>(() => Generators.Current.Byte());
+            byteExpando.Generator = new Func<byte>(() => Generators.Current.Byte());
             TypeGenerators.Add(typeof(byte), byteExpando);
 
             dynamic byteArrayExpando = new ExpandoObject();
-            byteArrayExpando.Value = new Func<byte[]>(() => Generators.Current.ByteArray());
+            byteArrayExpando.Generator = new Func<byte[]>(() => Generators.Current.ByteArray());
             TypeGenerators.Add(typeof(byte[]), byteArrayExpando);
 
             dynamic decimalExpando = new ExpandoObject();
-            decimalExpando.Value = new Func<decimal>(() => Generators.Current.Decimal());
+            decimalExpando.Generator = new Func<decimal>(() => Generators.Current.Decimal());
             TypeGenerators.Add(typeof(decimal), decimalExpando);
 
             dynamic floatExpando = new ExpandoObject();
-            floatExpando.Value = new Func<float>(() => Generators.Current.Float());
+            floatExpando.Generator = new Func<float>(() => Generators.Current.Float());
             TypeGenerators.Add(typeof(float), floatExpando);
 
             dynamic intExpando = new ExpandoObject();
-            intExpando.Value = new Func<int>(() => Generators.Current.Int());
+            intExpando.Generator = new Func<int>(() => Generators.Current.Int());
             TypeGenerators.Add(typeof(int), intExpando);
 
             dynamic int64Expando = new ExpandoObject();
-            int64Expando.Value = new Func<Int64>(() => Generators.Current.Int64());
+            int64Expando.Generator = new Func<Int64>(() => Generators.Current.Int64());
             TypeGenerators.Add(typeof(Int64), int64Expando);
 
             dynamic int16Expando = new ExpandoObject();
-            int16Expando.Value = new Func<Int16>(() => Generators.Current.Int16());
+            int16Expando.Generator = new Func<Int16>(() => Generators.Current.Int16());
             TypeGenerators.Add(typeof(Int16), int16Expando);
 
             dynamic stringExpando = new ExpandoObject();
-            stringExpando.Value = new Func<string>(() => Generators.Current.String());
+            stringExpando.Generator = new Func<string>(() => Generators.Current.String());
             TypeGenerators.Add(typeof(string), stringExpando);
         }
     }
