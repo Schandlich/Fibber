@@ -1,0 +1,4 @@
+extensions: .designer.cs
+extensions: .context.cs
+extensions: .cs
+/* Copyright (c) BeyondTheDuck 2014 */
