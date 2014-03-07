@@ -76,45 +76,64 @@ namespace Fibber
         }
 
         /// <summary>
-        /// Uses the built in Generators methods for all properties of type bool, byte, byte[], decimal, float, int, int64, int16, and string.
+        /// Register a generator for T.
         /// </summary>
-        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Reviewed.")]
+        /// <typeparam name="T">The type the generator is registered to.</typeparam>
+        /// <param name="randomGenerator">Use a random generator to generate a value from one of the listed types described in the enumeration.</param>
+        /// <returns></returns>
+        [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Reviewed.")]
+        public FibberConfiguration For<T>(RandGen randomGenerator)
+        {
+            if (TypeGenerators.ContainsKey(typeof(T))) { throw new ArgumentException(string.Format("There is already a generator registered for type: {0}.", typeof(T).ToString())); }
+
+            dynamic expando = new ExpandoObject();
+
+            expando.Generator = randomGenerator;
+
+            TypeGenerators.Add(typeof(T), expando);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Uses the built in Generators methods for all properties of type bool, byte, byte[], decimal, float, Int16, Int32, Int64, and string (RandGen.String).
+        /// </summary>
         public void UseDefaults()
         {
             dynamic boolExpando = new ExpandoObject();
-            boolExpando.Generator = new Func<bool>(() => Generators.Current.Bool());
+            boolExpando.Generator = RandGen.Bool;
             TypeGenerators.Add(typeof(bool), boolExpando);
 
             dynamic byteExpando = new ExpandoObject();
-            byteExpando.Generator = new Func<byte>(() => Generators.Current.Byte());
+            byteExpando.Generator = RandGen.Byte;
             TypeGenerators.Add(typeof(byte), byteExpando);
 
             dynamic byteArrayExpando = new ExpandoObject();
-            byteArrayExpando.Generator = new Func<byte[]>(() => Generators.Current.ByteArray());
+            byteArrayExpando.Generator = RandGen.ByteArray;
             TypeGenerators.Add(typeof(byte[]), byteArrayExpando);
 
             dynamic decimalExpando = new ExpandoObject();
-            decimalExpando.Generator = new Func<decimal>(() => Generators.Current.Decimal());
+            decimalExpando.Generator = RandGen.Decimal;
             TypeGenerators.Add(typeof(decimal), decimalExpando);
 
             dynamic floatExpando = new ExpandoObject();
-            floatExpando.Generator = new Func<float>(() => Generators.Current.Float());
+            floatExpando.Generator = RandGen.Float;
             TypeGenerators.Add(typeof(float), floatExpando);
 
-            dynamic intExpando = new ExpandoObject();
-            intExpando.Generator = new Func<int>(() => Generators.Current.Int());
-            TypeGenerators.Add(typeof(int), intExpando);
-
-            dynamic int64Expando = new ExpandoObject();
-            int64Expando.Generator = new Func<Int64>(() => Generators.Current.Int64());
-            TypeGenerators.Add(typeof(Int64), int64Expando);
-
             dynamic int16Expando = new ExpandoObject();
-            int16Expando.Generator = new Func<Int16>(() => Generators.Current.Int16());
+            int16Expando.Generator = RandGen.Int16;
             TypeGenerators.Add(typeof(Int16), int16Expando);
 
+            dynamic int32Expando = new ExpandoObject();
+            int32Expando.Generator = RandGen.Int32;
+            TypeGenerators.Add(typeof(Int32), int32Expando);
+
+            dynamic int64Expando = new ExpandoObject();
+            int64Expando.Generator = RandGen.Int64;
+            TypeGenerators.Add(typeof(Int64), int64Expando);
+
             dynamic stringExpando = new ExpandoObject();
-            stringExpando.Generator = new Func<string>(() => Generators.Current.String());
+            stringExpando.Generator = RandGen.String;
             TypeGenerators.Add(typeof(string), stringExpando);
         }
     }
