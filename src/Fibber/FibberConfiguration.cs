@@ -22,6 +22,15 @@ namespace Fibber
         public FibberConfiguration() { }
 
         /// <summary>
+        /// Internal constructor.
+        /// </summary>
+        internal FibberConfiguration(Type type, Dictionary<Type, dynamic> typeGenerators)
+        {
+            Type = type;
+            TypeGenerators = typeGenerators;
+        }
+
+        /// <summary>
         /// Register a generator for T.
         /// </summary>
         /// <typeparam name="T">The type the generator is registered to.</typeparam>

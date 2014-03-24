@@ -1,6 +1,8 @@
 ﻿/* Copyright (c) BeyondTheDuck 2014 */
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -16,11 +18,6 @@ namespace Fibber
         private static int? _seedValue;
 
         private ThreadLocal<Random> _randomGen = new ThreadLocal<Random>(() => _seedValue.HasValue ? new Random(_seedValue.Value) : new Random());
-
-        private Lazy<string[]> _alphabet = new Lazy<string[]>(() =>
-        {
-            return new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " " };
-        });
 
         /// <summary>
         /// Obsolete
@@ -83,46 +80,92 @@ namespace Fibber
         [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Reviewed.")]
         public T Fib<T>(T item)
         {
+            var foundTypeGenerators = new Dictionary<Type, dynamic>();
+
             if (_fibberTypeConfiguration.TypeConfigurations.ContainsKey(typeof(T)))
             {
-                var t = _fibberTypeConfiguration.TypeConfigurations[typeof(T)];
+                foundTypeGenerators = _fibberTypeConfiguration.TypeConfigurations[typeof(T)].TypeGenerators;
+            }
+            else
+            {
+                var newTypeGenerators = new Dictionary<Type, dynamic>();
 
-                if (t != null)
+                dynamic boolExpando = new ExpandoObject();
+                boolExpando.Generator = RandGen.Bool;
+                newTypeGenerators.Add(typeof(bool), boolExpando);
+
+                dynamic byteExpando = new ExpandoObject();
+                byteExpando.Generator = RandGen.Byte;
+                newTypeGenerators.Add(typeof(byte), byteExpando);
+
+                dynamic byteArrayExpando = new ExpandoObject();
+                byteArrayExpando.Generator = RandGen.ByteArray;
+                newTypeGenerators.Add(typeof(byte[]), byteArrayExpando);
+
+                dynamic decimalExpando = new ExpandoObject();
+                decimalExpando.Generator = RandGen.Decimal;
+                newTypeGenerators.Add(typeof(decimal), decimalExpando);
+
+                dynamic floatExpando = new ExpandoObject();
+                floatExpando.Generator = RandGen.Float;
+                newTypeGenerators.Add(typeof(float), floatExpando);
+
+                dynamic int16Expando = new ExpandoObject();
+                int16Expando.Generator = RandGen.Int16;
+                newTypeGenerators.Add(typeof(Int16), int16Expando);
+
+                dynamic int32Expando = new ExpandoObject();
+                int32Expando.Generator = RandGen.Int32;
+                newTypeGenerators.Add(typeof(Int32), int32Expando);
+
+                dynamic int64Expando = new ExpandoObject();
+                int64Expando.Generator = RandGen.Int64;
+                newTypeGenerators.Add(typeof(Int64), int64Expando);
+
+                dynamic stringExpando = new ExpandoObject();
+                stringExpando.Generator = RandGen.String;
+                newTypeGenerators.Add(typeof(string), stringExpando);
+
+                _fibberTypeConfiguration.TypeConfigurations.Add(typeof(T), new FibberConfiguration(typeof(T), newTypeGenerators));
+
+                foundTypeGenerators = _fibberTypeConfiguration.TypeConfigurations[typeof(T)].TypeGenerators;
+            }
+
+            if (foundTypeGenerators != null)
+            {
+                foreach (PropertyInfo property in typeof(T).GetProperties())
                 {
-                    foreach (PropertyInfo property in typeof(T).GetProperties())
+                    Type propertyType = property.PropertyType;
+
+                    if (foundTypeGenerators.ContainsKey(propertyType))
                     {
-                        Type propertyType = property.PropertyType;
+                        dynamic func = foundTypeGenerators[propertyType];
 
-                        if (t.TypeGenerators.ContainsKey(propertyType))
+                        if (func != null)
                         {
-                            dynamic func = t.TypeGenerators[propertyType];
-
-                            if (func != null)
+                            if (func.Generator.GetType() == propertyType)
                             {
-                                if (func.Generator.GetType() == propertyType)
-                                {
-                                    property.SetValue(item, func.Generator, null);
-                                }
-                                else if (func.Generator.GetType() == typeof(RandGen))
-                                {
-                                    RandGen randoms = Enum.ToObject(typeof(RandGen), func.Generator);
+                                property.SetValue(item, func.Generator, null);
+                            }
+                            else if (func.Generator.GetType() == typeof(RandGen))
+                            {
+                                RandGen randoms = Enum.ToObject(typeof(RandGen), func.Generator);
 
-                                    GenerateRandomValue<T>(item, property, randoms);
-                                }
-                                else
-                                {
-                                    var constructedMethod = func.Generator.Method as MethodInfo;
+                                GenerateRandomValue<T>(item, property, randoms);
+                            }
+                            else
+                            {
+                                var constructedMethod = func.Generator.Method as MethodInfo;
 
-                                    if (constructedMethod != null)
+                                if (constructedMethod != null)
+                                {
+                                    if (constructedMethod.GetParameters().Length == 0)
                                     {
-                                        if (constructedMethod.GetParameters().Length == 0)
-                                        {
-                                            property.SetValue(item, constructedMethod.Invoke(null, null), null);
-                                        }
-                                        else if (constructedMethod.GetParameters().Length == 1)
-                                        {
-                                            property.SetValue(item, constructedMethod.Invoke(null, new object[] { property.GetValue(item, null) }), null);
-                                        }
+                                        property.SetValue(item, constructedMethod.Invoke(null, null), null);
+                                    }
+                                    else if (constructedMethod.GetParameters().Length == 1)
+                                    {
+                                        property.SetValue(item, constructedMethod.Invoke(null, new object[] { property.GetValue(item, null) }), null);
                                     }
                                 }
                             }
@@ -308,17 +351,36 @@ namespace Fibber
 
         private string GenerateString(int minLength, int maxLength, bool includeSpaces)
         {
-            var returnValue = new StringBuilder();
-            var alphabetRange = includeSpaces ? 64 : 52;
-
             var length = _randomGen.Value.Next(minLength, maxLength);
+            var returnValue = new byte[length];
 
-            for (int i = 0; i < length; i++)
+            if (includeSpaces)
             {
-                returnValue.Append(_alphabet.Value[Convert.ToInt32(Math.Floor(alphabetRange * _randomGen.Value.NextDouble()))]);
+                for (int i = 0; i < length; i++)
+                {
+                    var randomByte = (byte)_randomGen.Value.Next(54, 123);
+
+                    if (randomByte < 65)
+                    {
+                        returnValue[i] = (byte)32;
+                    }
+                    else
+                    {
+                        returnValue[i] = randomByte;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    returnValue[i] = (byte)_randomGen.Value.Next(65, 123);
+                }
             }
 
-            return returnValue.ToString();
+            var encoding = new ASCIIEncoding();
+
+            return encoding.GetString(returnValue);
         }
 
         #region IDisposable Members
