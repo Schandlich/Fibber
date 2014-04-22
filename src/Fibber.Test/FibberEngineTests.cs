@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Fibber.Test
 {
-    class FibberEngineTests
+    public class FibberEngineTests
     {
     }
 }

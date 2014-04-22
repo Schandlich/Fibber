@@ -16,6 +16,7 @@ namespace Fibber
     {
         private FibberTypeConfiguration _fibberTypeConfiguration;
         private static int? _seedValue;
+        private static Int16 _maxDepth = 5;
 
         private ThreadLocal<Random> _randomGen = new ThreadLocal<Random>(() => _seedValue.HasValue ? new Random(_seedValue.Value) : new Random());
 
@@ -54,6 +55,20 @@ namespace Fibber
             return Create<FibberEngine>();
         }
 
+        /// <summary>
+        /// Max depth for classes that have properties with a hierarchical relationship.
+        /// </summary>
+        /// <param name="depth">Max number of instances per type that will be fibbed.</param>
+        /// <returns></returns>
+        public FibberEngine MaxDepth(Int16 depth)
+        {
+            if (depth < 1 || depth > 10) { throw new ArgumentException("depth must be greater than or equal to 1 and less than or equal to 10.", "depth"); }
+
+            _maxDepth = depth;
+
+            return Create<FibberEngine>();
+        }
+
         private T Create<T>() where T : FibberEngine, new()
         {
             var returnValue = new T()
@@ -81,6 +96,8 @@ namespace Fibber
         public T Fib<T>(T item)
         {
             var foundTypeGenerators = new Dictionary<Type, dynamic>();
+            var currentDepth = 0;
+            var actualDepth = 0;
 
             if (_fibberTypeConfiguration.TypeConfigurations.ContainsKey(typeof(T)))
             {
@@ -169,6 +186,149 @@ namespace Fibber
                                     }
                                 }
                             }
+                        }
+                    }
+                    else if (propertyType.IsPublic && !propertyType.IsPrimitive && propertyType.IsClass && !propertyType.IsValueType && !propertyType.IsAbstract)
+                    {
+                        if (currentDepth >= _maxDepth) { return item; }
+
+                        var construtor = propertyType.GetConstructor(Type.EmptyTypes);
+
+                        if (construtor != null)
+                        {
+                            var instance = construtor.Invoke(null);
+
+                            if (propertyType == typeof(T))
+                            {
+                                var result = Fib(instance, propertyType, currentDepth, out actualDepth);
+
+                                currentDepth = actualDepth;
+                                property.SetValue(item, result, null);
+                            }
+                            else
+                            {
+                                var result = Fib(instance, propertyType, 0, out actualDepth);
+
+                                property.SetValue(item, result, null);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return item;
+        }
+
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Reviewed.")]
+        private T Fib<T>(T item, Type type, int currentDepth, out int actualDepth)
+        {
+            currentDepth++;
+            actualDepth = currentDepth;
+
+            var foundTypeGenerators = new Dictionary<Type, dynamic>();
+
+            if (_fibberTypeConfiguration.TypeConfigurations.ContainsKey(type))
+            {
+                foundTypeGenerators = _fibberTypeConfiguration.TypeConfigurations[type].TypeGenerators;
+            }
+            else
+            {
+                var newTypeGenerators = new Dictionary<Type, dynamic>();
+
+                dynamic boolExpando = new ExpandoObject();
+                boolExpando.Generator = RandGen.Bool;
+                newTypeGenerators.Add(typeof(bool), boolExpando);
+
+                dynamic byteExpando = new ExpandoObject();
+                byteExpando.Generator = RandGen.Byte;
+                newTypeGenerators.Add(typeof(byte), byteExpando);
+
+                dynamic byteArrayExpando = new ExpandoObject();
+                byteArrayExpando.Generator = RandGen.ByteArray;
+                newTypeGenerators.Add(typeof(byte[]), byteArrayExpando);
+
+                dynamic decimalExpando = new ExpandoObject();
+                decimalExpando.Generator = RandGen.Decimal;
+                newTypeGenerators.Add(typeof(decimal), decimalExpando);
+
+                dynamic floatExpando = new ExpandoObject();
+                floatExpando.Generator = RandGen.Float;
+                newTypeGenerators.Add(typeof(float), floatExpando);
+
+                dynamic int16Expando = new ExpandoObject();
+                int16Expando.Generator = RandGen.Int16;
+                newTypeGenerators.Add(typeof(Int16), int16Expando);
+
+                dynamic int32Expando = new ExpandoObject();
+                int32Expando.Generator = RandGen.Int32;
+                newTypeGenerators.Add(typeof(Int32), int32Expando);
+
+                dynamic int64Expando = new ExpandoObject();
+                int64Expando.Generator = RandGen.Int64;
+                newTypeGenerators.Add(typeof(Int64), int64Expando);
+
+                dynamic stringExpando = new ExpandoObject();
+                stringExpando.Generator = RandGen.String;
+                newTypeGenerators.Add(typeof(string), stringExpando);
+
+                _fibberTypeConfiguration.TypeConfigurations.Add(type, new FibberConfiguration(type, newTypeGenerators));
+
+                foundTypeGenerators = _fibberTypeConfiguration.TypeConfigurations[type].TypeGenerators;
+            }
+
+            if (foundTypeGenerators != null)
+            {
+                foreach (PropertyInfo property in type.GetProperties())
+                {
+                    Type propertyType = property.PropertyType;
+
+                    if (foundTypeGenerators.ContainsKey(propertyType))
+                    {
+                        dynamic func = foundTypeGenerators[propertyType];
+
+                        if (func != null)
+                        {
+                            if (func.Generator.GetType() == propertyType)
+                            {
+                                property.SetValue(item, func.Generator, null);
+                            }
+                            else if (func.Generator.GetType() == typeof(RandGen))
+                            {
+                                RandGen randoms = Enum.ToObject(typeof(RandGen), func.Generator);
+
+                                GenerateRandomValue<T>(item, property, randoms);
+                            }
+                            else
+                            {
+                                var constructedMethod = func.Generator.Method as MethodInfo;
+
+                                if (constructedMethod != null)
+                                {
+                                    if (constructedMethod.GetParameters().Length == 0)
+                                    {
+                                        property.SetValue(item, constructedMethod.Invoke(null, null), null);
+                                    }
+                                    else if (constructedMethod.GetParameters().Length == 1)
+                                    {
+                                        property.SetValue(item, constructedMethod.Invoke(null, new object[] { property.GetValue(item, null) }), null);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (propertyType.IsPublic && !propertyType.IsPrimitive && propertyType.IsClass && !propertyType.IsValueType && !propertyType.IsAbstract)
+                    {
+                        if (currentDepth >= _maxDepth) { return item; }
+
+                        var construtor = propertyType.GetConstructor(Type.EmptyTypes);
+
+                        if (construtor != null)
+                        {
+                            var instance = construtor.Invoke(null);
+
+                            var result = Fib(instance, propertyType, currentDepth, out actualDepth);
+
+                            property.SetValue(item, result, null);
                         }
                     }
                 }

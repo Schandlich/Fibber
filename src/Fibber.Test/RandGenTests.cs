@@ -8,6 +8,6 @@ namespace Fibber.Test
 {
     public class RandGenTests
     {
-
+        // Unit tests go here.
     }
 }
