@@ -188,6 +188,13 @@ namespace Fibber
                             }
                         }
                     }
+                    else if (propertyType.IsPublic && propertyType.IsEnum)
+                    {
+                        var enumValues = propertyType.GetEnumValues();
+                        var randEnum = enumValues.GetValue(_randomGen.Value.Next(0, enumValues.Length));
+                        
+                        property.SetValue(item, randEnum, null);
+                    }
                     else if (propertyType.IsPublic && !propertyType.IsPrimitive && propertyType.IsClass && !propertyType.IsValueType && !propertyType.IsAbstract)
                     {
                         if (currentDepth >= _maxDepth) { return item; }
