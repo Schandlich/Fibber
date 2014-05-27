@@ -105,7 +105,7 @@ namespace Fibber
         }
 
         /// <summary>
-        /// Uses the built in Generators methods for all properties of type bool, byte, byte[], decimal, float, Int16, Int32, Int64, and string (RandGen.String).
+        /// Uses the built in Generators methods for all properties of type bool, byte, byte[], datetime, datetimeoffset, decimal, float, Int16, Int32, Int64, and string (RandGen.String).
         /// </summary>
         public void UseDefaults()
         {
@@ -120,6 +120,14 @@ namespace Fibber
             dynamic byteArrayExpando = new ExpandoObject();
             byteArrayExpando.Generator = RandGen.ByteArray;
             TypeGenerators.Add(typeof(byte[]), byteArrayExpando);
+
+            dynamic dateTimeExpando = new ExpandoObject();
+            dateTimeExpando.Generator = RandGen.DateTime;
+            TypeGenerators.Add(typeof(DateTime), dateTimeExpando);
+
+            dynamic dateTimeOffsetExpando = new ExpandoObject();
+            dateTimeOffsetExpando.Generator = RandGen.DateTimeOffset;
+            TypeGenerators.Add(typeof(DateTimeOffset), dateTimeOffsetExpando);
 
             dynamic decimalExpando = new ExpandoObject();
             decimalExpando.Generator = RandGen.Decimal;

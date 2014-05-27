@@ -192,7 +192,7 @@ namespace Fibber
                     {
                         var enumValues = propertyType.GetEnumValues();
                         var randEnum = enumValues.GetValue(_randomGen.Value.Next(0, enumValues.Length));
-                        
+
                         property.SetValue(item, randEnum, null);
                     }
                     else if (propertyType.IsPublic && !propertyType.IsPrimitive && propertyType.IsClass && !propertyType.IsValueType && !propertyType.IsAbstract)
@@ -253,6 +253,14 @@ namespace Fibber
                 dynamic byteArrayExpando = new ExpandoObject();
                 byteArrayExpando.Generator = RandGen.ByteArray;
                 newTypeGenerators.Add(typeof(byte[]), byteArrayExpando);
+
+                dynamic dateTimeExpando = new ExpandoObject();
+                dateTimeExpando.Generator = RandGen.DateTime;
+                newTypeGenerators.Add(typeof(DateTime), dateTimeExpando);
+
+                dynamic dateTimeOffsetExpando = new ExpandoObject();
+                dateTimeOffsetExpando.Generator = RandGen.DateTimeOffset;
+                newTypeGenerators.Add(typeof(DateTimeOffset), dateTimeOffsetExpando);
 
                 dynamic decimalExpando = new ExpandoObject();
                 decimalExpando.Generator = RandGen.Decimal;
@@ -369,6 +377,20 @@ namespace Fibber
                     }
 
                     break;
+                case RandGen.DateTime:
+                    {
+                        var value = this.GenerateDateTime();
+                        property.SetValue(item, value, null);
+                    }
+
+                    break;
+                case RandGen.DateTimeOffset:
+                    {
+                        var value = this.GenerateDateTimeOffset();
+                        property.SetValue(item, value, null);
+                    }
+
+                    break;
                 case RandGen.Decimal:
                     {
                         var value = this.GenerateDecimal();
@@ -471,6 +493,24 @@ namespace Fibber
             _randomGen.Value.NextBytes(returnValue);
 
             return returnValue;
+        }
+
+        private DateTime GenerateDateTime()
+        {
+            var returnValue = DateTime.Now;
+
+            var seconds = _randomGen.Value.Next(-17776000, 17776000);
+
+            return returnValue.AddSeconds(seconds);
+        }
+
+        private DateTimeOffset GenerateDateTimeOffset()
+        {
+            var returnValue = DateTimeOffset.Now;
+
+            var seconds = _randomGen.Value.Next(-17776000, 17776000);
+
+            return returnValue.AddSeconds(seconds);
         }
 
         private decimal GenerateDecimal()

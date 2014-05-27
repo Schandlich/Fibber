@@ -27,6 +27,16 @@ namespace Fibber
         ByteArray,
 
         /// <summary>
+        /// Generate a random DateTime 90 days before or 90 after the current datetime.
+        /// </summary>
+        DateTime,
+
+        /// <summary>
+        /// Generate a random DateTimeOffset 90 days before or 90 after the current UTC datetime.
+        /// </summary>
+        DateTimeOffset,
+
+        /// <summary>
         /// Generate a random decimal.
         /// </summary>
         Decimal,
