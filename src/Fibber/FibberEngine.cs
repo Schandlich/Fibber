@@ -238,6 +238,7 @@ namespace Fibber
             return item;
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification="Reviewed. Temporary until better way is found.")]
         [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Reviewed.")]
         private T Fib<T>(T item, Type type, int currentDepth, out int actualDepth)
         {
@@ -361,9 +362,29 @@ namespace Fibber
 
                             var result = Fib(instance, propertyType, currentDepth, out actualDepth);
 
-                            if (property.CanWrite)
+                            if (item.GetType().GetInterface("ICollection`1") == null)
                             {
-                                property.SetValue(item, result, null);
+                                if (property.CanWrite)
+                                {
+                                    property.SetValue(item, result, null);
+                                }
+                            }
+                            else
+                            {
+                                var addMethod = item.GetType().GetMethod("Add");
+
+                                if (addMethod != null)
+                                {
+                                    try
+                                    {
+                                        addMethod.Invoke(item, new[] { result });
+
+                                    }
+                                    catch
+                                    {
+                                        //Continue. If something couldn't be added at this point, it is because there are rules stating that it can't be.
+                                    }
+                                }
                             }
                         }
                     }
