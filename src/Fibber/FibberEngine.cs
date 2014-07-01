@@ -162,7 +162,10 @@ namespace Fibber
                         {
                             if (func.Generator.GetType() == propertyType)
                             {
-                                property.SetValue(item, func.Generator, null);
+                                if (property.CanWrite)
+                                {
+                                    property.SetValue(item, func.Generator, null);
+                                }
                             }
                             else if (func.Generator.GetType() == typeof(RandGen))
                             {
@@ -176,13 +179,16 @@ namespace Fibber
 
                                 if (constructedMethod != null)
                                 {
-                                    if (constructedMethod.GetParameters().Length == 0)
+                                    if (property.CanWrite)
                                     {
-                                        property.SetValue(item, constructedMethod.Invoke(null, null), null);
-                                    }
-                                    else if (constructedMethod.GetParameters().Length == 1)
-                                    {
-                                        property.SetValue(item, constructedMethod.Invoke(null, new object[] { property.GetValue(item, null) }), null);
+                                        if (constructedMethod.GetParameters().Length == 0)
+                                        {
+                                            property.SetValue(item, constructedMethod.Invoke(null, null), null);
+                                        }
+                                        else if (constructedMethod.GetParameters().Length == 1)
+                                        {
+                                            property.SetValue(item, constructedMethod.Invoke(null, new object[] { property.GetValue(item, null) }), null);
+                                        }
                                     }
                                 }
                             }
@@ -193,7 +199,10 @@ namespace Fibber
                         var enumValues = propertyType.GetEnumValues();
                         var randEnum = enumValues.GetValue(_randomGen.Value.Next(0, enumValues.Length));
 
-                        property.SetValue(item, randEnum, null);
+                        if (property.CanWrite)
+                        {
+                            property.SetValue(item, randEnum, null);
+                        }
                     }
                     else if (propertyType.IsPublic && !propertyType.IsPrimitive && propertyType.IsClass && !propertyType.IsValueType && !propertyType.IsAbstract)
                     {
@@ -205,18 +214,21 @@ namespace Fibber
                         {
                             var instance = construtor.Invoke(null);
 
-                            if (propertyType == typeof(T))
+                            if (property.CanWrite)
                             {
-                                var result = Fib(instance, propertyType, currentDepth, out actualDepth);
+                                if (propertyType == typeof(T))
+                                {
+                                    var result = Fib(instance, propertyType, currentDepth, out actualDepth);
 
-                                currentDepth = actualDepth;
-                                property.SetValue(item, result, null);
-                            }
-                            else
-                            {
-                                var result = Fib(instance, propertyType, 0, out actualDepth);
+                                    currentDepth = actualDepth;
+                                    property.SetValue(item, result, null);
+                                }
+                                else
+                                {
+                                    var result = Fib(instance, propertyType, 0, out actualDepth);
 
-                                property.SetValue(item, result, null);
+                                    property.SetValue(item, result, null);
+                                }
                             }
                         }
                     }
@@ -305,7 +317,10 @@ namespace Fibber
                         {
                             if (func.Generator.GetType() == propertyType)
                             {
-                                property.SetValue(item, func.Generator, null);
+                                if (property.CanWrite)
+                                {
+                                    property.SetValue(item, func.Generator, null);
+                                }
                             }
                             else if (func.Generator.GetType() == typeof(RandGen))
                             {
@@ -319,13 +334,16 @@ namespace Fibber
 
                                 if (constructedMethod != null)
                                 {
-                                    if (constructedMethod.GetParameters().Length == 0)
+                                    if (property.CanWrite)
                                     {
-                                        property.SetValue(item, constructedMethod.Invoke(null, null), null);
-                                    }
-                                    else if (constructedMethod.GetParameters().Length == 1)
-                                    {
-                                        property.SetValue(item, constructedMethod.Invoke(null, new object[] { property.GetValue(item, null) }), null);
+                                        if (constructedMethod.GetParameters().Length == 0)
+                                        {
+                                            property.SetValue(item, constructedMethod.Invoke(null, null), null);
+                                        }
+                                        else if (constructedMethod.GetParameters().Length == 1)
+                                        {
+                                            property.SetValue(item, constructedMethod.Invoke(null, new object[] { property.GetValue(item, null) }), null);
+                                        }
                                     }
                                 }
                             }
@@ -343,7 +361,10 @@ namespace Fibber
 
                             var result = Fib(instance, propertyType, currentDepth, out actualDepth);
 
-                            property.SetValue(item, result, null);
+                            if (property.CanWrite)
+                            {
+                                property.SetValue(item, result, null);
+                            }
                         }
                     }
                 }
@@ -354,120 +375,123 @@ namespace Fibber
 
         private void GenerateRandomValue<T>(T item, PropertyInfo property, RandGen randoms)
         {
-            switch (randoms)
+            if (property.CanWrite)
             {
-                case RandGen.Bool:
-                    {
-                        var value = this.GenerateBool();
-                        property.SetValue(item, value, null);
-                    }
+                switch (randoms)
+                {
+                    case RandGen.Bool:
+                        {
+                            var value = this.GenerateBool();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.Byte:
-                    {
-                        var value = this.GenerateByte();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.Byte:
+                        {
+                            var value = this.GenerateByte();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.ByteArray:
-                    {
-                        var value = this.GenerateByteArray();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.ByteArray:
+                        {
+                            var value = this.GenerateByteArray();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.DateTime:
-                    {
-                        var value = this.GenerateDateTime();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.DateTime:
+                        {
+                            var value = this.GenerateDateTime();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.DateTimeOffset:
-                    {
-                        var value = this.GenerateDateTimeOffset();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.DateTimeOffset:
+                        {
+                            var value = this.GenerateDateTimeOffset();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.Decimal:
-                    {
-                        var value = this.GenerateDecimal();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.Decimal:
+                        {
+                            var value = this.GenerateDecimal();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.Float:
-                    {
-                        var value = this.GenerateFloat();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.Float:
+                        {
+                            var value = this.GenerateFloat();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.Int16:
-                    {
-                        var value = this.GenerateInt16();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.Int16:
+                        {
+                            var value = this.GenerateInt16();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.Int32:
-                    {
-                        var value = this.GenerateInt32();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.Int32:
+                        {
+                            var value = this.GenerateInt32();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.Int64:
-                    {
-                        var value = this.GenerateInt64();
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.Int64:
+                        {
+                            var value = this.GenerateInt64();
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.ShortString:
-                    {
-                        var value = this.GenerateString(1, 31, true);
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.ShortString:
+                        {
+                            var value = this.GenerateString(1, 31, true);
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.ShortStringNoSpaces:
-                    {
-                        var value = this.GenerateString(1, 31, false);
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.ShortStringNoSpaces:
+                        {
+                            var value = this.GenerateString(1, 31, false);
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.String:
-                    {
-                        var value = this.GenerateString(31, 61, true);
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.String:
+                        {
+                            var value = this.GenerateString(31, 61, true);
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.StringNoSpaces:
-                    {
-                        var value = this.GenerateString(31, 61, false);
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.StringNoSpaces:
+                        {
+                            var value = this.GenerateString(31, 61, false);
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.LargeString:
-                    {
-                        var value = this.GenerateString(61, 256, true);
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.LargeString:
+                        {
+                            var value = this.GenerateString(61, 256, true);
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
-                case RandGen.LargeStringNoSpaces:
-                    {
-                        var value = this.GenerateString(61, 256, false);
-                        property.SetValue(item, value, null);
-                    }
+                        break;
+                    case RandGen.LargeStringNoSpaces:
+                        {
+                            var value = this.GenerateString(61, 256, false);
+                            property.SetValue(item, value, null);
+                        }
 
-                    break;
+                        break;
+                }
             }
         }
 
