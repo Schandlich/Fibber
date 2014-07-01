@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+*.dll
+/src/Fibber.sln.ide
+/src/Fibber/bin
+/src/Fibber/obj/Debug
+/src/Fibber/obj/Release
+/src/Fibber.Test/obj
+*.suo

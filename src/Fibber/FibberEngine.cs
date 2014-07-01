@@ -93,6 +93,7 @@ namespace Fibber
         /// <param name="item">The current instance of the item.</param>
         /// <returns>The instance of the item.</returns>
         [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Reviewed.")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode", Justification = "Reviewed.")]
         public T Fib<T>(T item)
         {
             var foundTypeGenerators = new Dictionary<Type, dynamic>();
@@ -119,6 +120,14 @@ namespace Fibber
                 byteArrayExpando.Generator = RandGen.ByteArray;
                 newTypeGenerators.Add(typeof(byte[]), byteArrayExpando);
 
+                dynamic dateTimeExpando = new ExpandoObject();
+                dateTimeExpando.Generator = RandGen.DateTime;
+                newTypeGenerators.Add(typeof(DateTime), dateTimeExpando);
+
+                dynamic dateTimeOffsetExpando = new ExpandoObject();
+                dateTimeOffsetExpando.Generator = RandGen.DateTimeOffset;
+                newTypeGenerators.Add(typeof(DateTimeOffset), dateTimeOffsetExpando);
+
                 dynamic decimalExpando = new ExpandoObject();
                 decimalExpando.Generator = RandGen.Decimal;
                 newTypeGenerators.Add(typeof(decimal), decimalExpando);
@@ -126,6 +135,10 @@ namespace Fibber
                 dynamic floatExpando = new ExpandoObject();
                 floatExpando.Generator = RandGen.Float;
                 newTypeGenerators.Add(typeof(float), floatExpando);
+
+                dynamic guidExpando = new ExpandoObject();
+                guidExpando.Generator = RandGen.Guid;
+                newTypeGenerators.Add(typeof(Guid), guidExpando);
 
                 dynamic int16Expando = new ExpandoObject();
                 int16Expando.Generator = RandGen.Int16;
@@ -238,7 +251,7 @@ namespace Fibber
             return item;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification="Reviewed. Temporary until better way is found.")]
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Reviewed. Temporary fix while I think of a way to work with IObservables.")]
         [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Reviewed.")]
         private T Fib<T>(T item, Type type, int currentDepth, out int actualDepth)
         {
@@ -282,6 +295,10 @@ namespace Fibber
                 dynamic floatExpando = new ExpandoObject();
                 floatExpando.Generator = RandGen.Float;
                 newTypeGenerators.Add(typeof(float), floatExpando);
+
+                dynamic guidExpando = new ExpandoObject();
+                guidExpando.Generator = RandGen.Guid;
+                newTypeGenerators.Add(typeof(Guid), guidExpando);
 
                 dynamic int16Expando = new ExpandoObject();
                 int16Expando.Generator = RandGen.Int16;
@@ -378,7 +395,6 @@ namespace Fibber
                                     try
                                     {
                                         addMethod.Invoke(item, new[] { result });
-
                                     }
                                     catch
                                     {
@@ -438,6 +454,13 @@ namespace Fibber
                     case RandGen.Decimal:
                         {
                             var value = this.GenerateDecimal();
+                            property.SetValue(item, value, null);
+                        }
+
+                        break;
+                    case RandGen.Guid:
+                        {
+                            var value = this.GenerateGuid();
                             property.SetValue(item, value, null);
                         }
 
@@ -565,6 +588,16 @@ namespace Fibber
             var returnValue = new decimal(_randomGen.Value.Next(), _randomGen.Value.Next(), _randomGen.Value.Next(), sign, scale);
 
             return Math.Abs(returnValue);
+        }
+
+        private Guid GenerateGuid()
+        {
+            var guid = new byte[16];
+            _randomGen.Value.NextBytes(guid);
+
+            var returnValue = new Guid(guid);
+
+            return returnValue;
         }
 
         private float GenerateFloat()

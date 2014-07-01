@@ -1,0 +1,9 @@
+<StyleCopSettings Version="105">
+  <GlobalSettings>
+    <CollectionProperty Name="RecognizedWords">
+      <Value>datetime</Value>
+      <Value>datetimeoffset</Value>
+      <Value>Guid</Value>
+    </CollectionProperty>
+  </GlobalSettings>
+</StyleCopSettings>

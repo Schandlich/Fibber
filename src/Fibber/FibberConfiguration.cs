@@ -137,6 +137,10 @@ namespace Fibber
             floatExpando.Generator = RandGen.Float;
             TypeGenerators.Add(typeof(float), floatExpando);
 
+            dynamic guidExpando = new ExpandoObject();
+            guidExpando.Generator = RandGen.Guid;
+            TypeGenerators.Add(typeof(Guid), guidExpando);
+
             dynamic int16Expando = new ExpandoObject();
             int16Expando.Generator = RandGen.Int16;
             TypeGenerators.Add(typeof(Int16), int16Expando);

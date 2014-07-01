@@ -47,6 +47,11 @@ namespace Fibber
         Float,
 
         /// <summary>
+        /// Generate a random Guid. Note - this will not be as random as using Guid.NewGuid().
+        /// </summary>
+        Guid,
+
+        /// <summary>
         /// Generate a random, positive Int16,
         /// </summary>
         Int16,
